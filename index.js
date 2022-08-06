@@ -24,9 +24,9 @@ const start = (openWa = new Client()) => {
   app.use(bodyParser.json());
   app.use("/", router);
 
-  router.post("/", (req, res) => {
-    let target = req.body.target;
-    let message = req.body.message;
+  router.get("/", (req, res) => {
+    let target = req.query.target;
+    let message = req.query.message;
 
     headNumber = target[0] + target[1];
     if (headNumber == "08") {
@@ -35,15 +35,23 @@ const start = (openWa = new Client()) => {
       target = `62${target.slice(2)}@c.us`;
     }
 
-    openWa.sendText(target, message);
-    console.log(color("[BOT]"), color(" Sending message to", "yellow"), target);
-    res.setHeader("content-type", "text/plain");
-    res.send(
-      JSON.stringify({
-        status: "success",
-        data: { target: target, message: message },
-      })
-    );
+    if (!target && !message) {
+      res.status(400).send("Please provide a target and a message");
+    } else {
+      openWa.sendText(target, message);
+      console.log(
+        color("[BOT]"),
+        color(" Sending message to", "yellow"),
+        target
+      );
+      res.setHeader("content-type", "text/plain");
+      res.send(
+        JSON.stringify({
+          status: "success",
+          data: { target: target, message: message },
+        })
+      );
+    }
   });
 
   app.listen(PORT_API, () => {
